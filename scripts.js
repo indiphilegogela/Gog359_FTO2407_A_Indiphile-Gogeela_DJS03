@@ -5,25 +5,26 @@ let matches = books
 
 const starting = document.createDocumentFragment()
 
-for (const { author, id, image, title } of matches.slice(0, BOOKS_PER_PAGE)) {
-    const element = document.createElement('button')
-    element.classList = 'preview'
-    element.setAttribute('data-preview', id)
+const BookApp = {
+  page: 1,
+  matches: books,
+  booksPerPage: BOOKS_PER_PAGE,
 
-    element.innerHTML = `
-        <img
-            class="preview__image"
-            src="${image}"
-        />
-        
-        <div class="preview__info">
-            <h3 class="preview__title">${title}</h3>
-            <div class="preview__author">${authors[author]}</div>
-        </div>
-    `
+  renderBooks() {
+    // clear existing items
+    const container = document.querySelector('[data-list-items]');
+    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
-    starting.appendChild(element)
-}
+    for (const book of this.matches.slice(0, this.booksPerPage)) {
+      fragment.appendChild(createBookPreview(book));
+    }
+    container.appendChild(fragment);
+  },
+
+  // Other methods like loadMore, filterBooks, updateTheme etc.
+};
+
 
 document.querySelector('[data-list-items]').appendChild(starting)
 
