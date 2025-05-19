@@ -1,126 +1,141 @@
-import { books, authors, genres, BOOKS_PER_PAGE } from './data.js'
+// --- Sample dynamic book data ---
+const books = [
+  {
+    cover: 'https://example.com/cover1.jpg',
+    title: 'The Great Gatsby',
+    author: 'F. Scott Fitzgerald',
+    description: 'A classic novel about the American dream.'
+  },
+  {
+    cover: 'https://example.com/cover2.jpg',
+    title: 'To Kill a Mockingbird',
+    author: 'Harper Lee',
+    description: 'A story of racial injustice in the Deep South.'
+  },
+  {
+    cover: 'https://example.com/cover3.jpg',
+    title: '1984',
+    author: 'George Orwell',
+    description: 'A dystopian novel about surveillance and control.'
+  }
+];
 
-const BookApp = {
-    page: 1,
-    matches: books,
-    booksPerPage: BOOKS_PER_PAGE,
-
-    init() {
-        this.renderBooks();
-        this.updateLoadMoreButton();
-        this.initEventListeners();
-        this.applyTheme();
-    },
-
-    renderBooks() {
-        const container = document.querySelector('[data-list-items]');
-        container.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-
-        for (const book of this.matches.slice(0, this.booksPerPage)) {
-            fragment.appendChild(this.createBookPreview(book));
+// --- BookPreview Web Component Definition ---
+class BookPreview extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          border: 1px solid #ddd;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          max-width: 300px;
+          font-family: Arial, sans-serif;
+          margin: 1rem 0;
         }
-
-        container.appendChild(fragment);
-    },
-
-    createBookPreview(book) {
-        const element = document.createElement('button');
-        element.classList = 'preview';
-        element.setAttribute('data-preview', book.id);
-
-        element.innerHTML = `
-            <img class="preview__image" src="${book.image}" />
-            <div class="preview__info">
-                <h3 class="preview__title">${book.title}</h3>
-                <div class="preview__author">${authors[book.author]}</div>
-            </div>
-        `;
-
-        return element;
-    },
-
-    filterBooks(filters) {
-        const result = books.filter((book) => {
-            const titleMatch = filters.title.trim() === '' || book.title.toLowerCase().includes(filters.title.toLowerCase());
-            const authorMatch = filters.author === 'any' || book.author === filters.author;
-            const genreMatch = filters.genre === 'any' || book.genres.includes(filters.genre);
-
-            return titleMatch && authorMatch && genreMatch;
-        });
-
-        this.matches = result;
-        this.page = 1;
-        this.renderBooks();
-        this.updateLoadMoreButton();
-    },
-
-    loadMore() {
-        const start = this.page * this.booksPerPage;
-        const end = start + this.booksPerPage;
-
-        const fragment = document.createDocumentFragment();
-        const booksToLoad = this.matches.slice(start, end);
-
-        for (const book of booksToLoad) {
-            fragment.appendChild(this.createBookPreview(book));
+        .cover {
+          width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
+          object-fit: cover;
         }
+        .title {
+          font-size: 1.2rem;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+        }
+        .author {
+          font-size: 1rem;
+          color: #555;
+          margin-bottom: 1rem;
+        }
+        .description {
+          font-size: 0.9rem;
+          color: #333;
+        }
+      </style>
+      <div class="book-preview">
+        <img class="cover" src="" alt="Book Cover">
+        <div class="title"></div>
+        <div class="author"></div>
+        <div class="description"></div>
+      </div>
+    `;
+  }
 
-        document.querySelector('[data-list-items]').appendChild(fragment);
+  static get observedAttributes() {
+    return ['cover', 'title', 'author', 'description'];
+  }
 
-        this.page++;
-        this.updateLoadMoreButton();
-    },
+  attributeChangedCallback(name, oldValue, newValue) {
+    const element = this.shadowRoot.querySelector(`.${name}`);
+    if (!element) return;
 
-    updateLoadMoreButton() {
-        const remaining = this.matches.length - (this.page * this.booksPerPage);
-        const button = document.querySelector('[data-list-button]');
-        
-        button.disabled = remaining <= 0;
-        button.innerHTML = `
-            <span>Show more</span>
-            <span class="list__remaining"> (${remaining > 0 ? remaining : 0})</span>
-        `;
-    },
-
-    applyTheme() {
-        const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
-        this.setTheme(theme);
-    },
-
-    setTheme(theme) {
-        const darkMode = theme === 'night';
-        document.documentElement.style.setProperty('--color-dark', darkMode ? '255, 255, 255' : '10, 10, 20');
-        document.documentElement.style.setProperty('--color-light', darkMode ? '10, 10, 20' : '255, 255, 255');
-    },
-
-    initEventListeners() {
-        document.querySelector('[data-search-form]').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const filters = Object.fromEntries(formData);
-            this.filterBooks(filters);
-        });
-
-        document.querySelector('[data-list-button]').addEventListener('click', () => {
-            this.loadMore();
-        });
-
-        document.querySelector('[data-settings-form]').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const { theme } = Object.fromEntries(formData);
-            this.setTheme(theme);
-        });
-
-        document.querySelector('[data-search-cancel]').addEventListener('click', () => {
-            document.querySelector('[data-search-overlay]').open = false;
-        });
-
-        document.querySelector('[data-settings-cancel]').addEventListener('click', () => {
-            document.querySelector('[data-settings-overlay]').open = false;
-        });
+    if (name === 'cover') {
+      element.src = newValue;
+      element.alt = this.getAttribute('title') || 'Book Cover';
+    } else {
+      element.textContent = newValue;
     }
-};
+  }
 
-BookApp.init();
+  connectedCallback() {
+    BookPreview.observedAttributes.forEach(attr => {
+      if (this.hasAttribute(attr)) {
+        this.attributeChangedCallback(attr, null, this.getAttribute(attr));
+      }
+    });
+  }
+}
+
+customElements.define('book-preview', BookPreview);
+
+// --- Function to render book previews dynamically ---
+function renderBookPreviews(bookList, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.error(`Container with id '${containerId}' not found.`);
+    return;
+  }
+
+  container.innerHTML = '';
+
+  bookList.forEach(book => {
+    const bookPreview = document.createElement('book-preview');
+    bookPreview.setAttribute('cover', book.cover);
+    bookPreview.setAttribute('title', book.title);
+    bookPreview.setAttribute('author', book.author);
+    bookPreview.setAttribute('description', book.description);
+
+    container.appendChild(bookPreview);
+  });
+}
+
+// --- Initialize when DOM is ready ---
+document.addEventListener('DOMContentLoaded', () => {
+  const containerId = 'book-preview-container';
+
+  // Render initial book previews
+  renderBookPreviews(books, containerId);
+
+  // Attach search event listener after DOM is fully loaded
+  const searchBar = document.querySelector('search-bar');
+  
+  if (searchBar) {
+    searchBar.addEventListener('search', (e) => {
+      const query = e.detail.query.toLowerCase();
+      const filteredBooks = books.filter(
+        (book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query)
+      );
+
+      renderBookPreviews(filteredBooks, containerId);
+    });
+  }
+});

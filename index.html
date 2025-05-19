@@ -18,27 +18,32 @@
       </div>
     </header>
 
+
+    <main class="main">
+  <search-bar></search-bar>
+
+  <!-- The rest of your book list / preview container -->
+  <section class="book-list-section" aria-labelledby="book-list-title">
+    <h2 id="book-list-title" class="visually-hidden">Book List</h2>
+    <div id="book-preview-container"></div>
+    <!-- ... -->
+  </section>
+</main>
+
+
     <!-- Main Content Section -->
     <main class="main">
 
-      <book-preview
-  cover="https://example.com/cover.jpg"
-  title="The Great Gatsby"
-  author="F. Scott Fitzgerald"
-  description="A classic novel about the American dream.">
-</book-preview>
+  <div id="book-preview-container"></div>
 
 
-      <!-- Book List Section -->
+
+<!-- Dynamic Book Previews Container -->
       <section class="book-list-section" aria-labelledby="book-list-title">
         <h2 id="book-list-title" class="visually-hidden">Book List</h2>
 
-        <!-- Book List Container -->
-        <div class="book-list" data-book-list>
-          <article class="book-item" data-book-id="1">Book 1</article>
-          <article class="book-item" data-book-id="2">Book 2</article>
-          <article class="book-item" data-book-id="3">Book 3</article>
-        </div>
+        <!-- Container where BookPreview components will be injected -->
+        <div id="book-preview-container"></div>
 
         <!-- No Results Message -->
         <div class="no-results" data-no-results>No results found</div>
@@ -49,7 +54,13 @@
     </main>
 
     <!-- Dialog Overlay Section -->
-    <aside class="overlay" data-list-active role="dialog" aria-modal="true">
+   <aside
+      class="overlay"
+      data-list-active
+      role="dialog"
+      aria-modal="true"
+      style="display: none;"
+    >
       <div class="overlay__content" data-list-content></div>
       <div class="overlay__actions">
         <button class="overlay__button" data-list-close>Close</button>
